@@ -6,6 +6,7 @@ let userData = null;
 let verificationCode = 0;
 let FPEmail = null;
 const sendEmail = require("../utils/sendEmail");
+const bcrypt = require("bcrypt");
 
 router.post("/", async (req, res) => {
   const { error } = validate(req.body);
@@ -58,14 +59,14 @@ router.post("/", async (req, res) => {
 
 router.post("/code", async (req, res) => {
   try {
-    // if (req.body.forgotPassword === true && req.body.code) {
-    //   if (verificationCode == req.body.code) {
-    //     verificationCode = 0;
-    //     return res.send({ Verify: "Email has been verified" });
-    //   } else {
-    //     return res.status(400).send("Invalid Verification Code!");
-    //   }
-    // }
+    if (req.body.forgotPassword === true && req.body.code) {
+      if (verificationCode == req.body.code) {
+        verificationCode = 0;
+        return res.send({ Verify: "Email has been verified" });
+      } else {
+        return res.status(400).send("Invalid Verification Code!");
+      }
+    }
     if (verificationCode == req.body.code) {
       verificationCode = 0;
       let salesman = new Salesman({
@@ -84,6 +85,37 @@ router.get("/resend", async (req, res) => {
   verificationCode = Math.floor(100000 + Math.random() * 900000);
   sendEmail(userData.email, verificationCode);
   res.send({ resend: true });
+});
+
+router.post("/forgot", async (req, res) => {
+  const existingUser = await Salesman.findOne({ email: req.body.email });
+  if (existingUser) {
+    verificationCode = Math.floor(100000 + Math.random() * 900000);
+    sendEmail(req.body.email, verificationCode);
+    res.send({ resend: true });
+    FPEmail = { email: req.body.email };
+  } else {
+    res.status(400).send("Invalid Email!");
+  }
+});
+
+router.put("/updatePass", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await Salesman.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.password = password;
+    await user.save();
+    res.status(200).json({ update: true });
+    FPEmail = {};
+    console.log("done");
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 router.get("/", async (req, res) => {

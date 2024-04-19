@@ -23,8 +23,8 @@ router.post("/", async (req, res) => {
     // Iterate over each cart item and save it to the database
     for (let item of cartItems) {
       // Fetch Department and Category objects using their IDs
-      const department = await Department.findById(item.pdepartment._id);
-      const category = await Category.findById(item.pcategory._id);
+      const department = await Department.findById(item.pdepartment);
+      const category = await Category.findById(item.pcategory);
 
       // Fetch Product object using its ID
       const product = await Product.findById(item.pname);

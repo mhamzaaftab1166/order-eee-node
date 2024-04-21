@@ -122,6 +122,10 @@ router.get("/", async (req, res) => {
   const salesman = await Salesman.find().populate("department").sort("name");
   res.send(salesman);
 });
+router.get("/:id", async (req, res) => {
+  const salesman = await Salesman.findById(req.params.id);
+  res.send(salesman);
+});
 
 router.delete("/:id", async (req, res) => {
   const salesman = await Salesman.findByIdAndRemove(req.params.id);
@@ -136,7 +140,7 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
-  const { name, cnic, phone, email, password, department } = req.body;
+  const { name, phone, email, password, department } = req.body;
 
   // Check if department exists
   const existingDepartment = await Department.findById(department);
@@ -148,7 +152,6 @@ router.put("/:id", async (req, res) => {
     req.params.id,
     {
       name: name,
-      cnic: cnic,
       phone: phone,
       email: email,
       password: password,

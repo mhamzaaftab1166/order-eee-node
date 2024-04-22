@@ -73,6 +73,18 @@ router.get("/:id", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+router.get("/department/:departmentId", async (req, res) => {
+  try {
+    const products = await Product.find({
+      department: req.params.departmentId,
+    });
+    res.send(products);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
 // UPDATE
 router.put("/:id", async (req, res) => {
   try {

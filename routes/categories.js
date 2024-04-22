@@ -29,6 +29,22 @@ router.get("/", async (req, res) => {
   res.send(categories);
 });
 
+router.get("/:subcategory", async (req, res) => {
+  const { subcategory } = req.params; // Access subcategory from req.params
+  try {
+    const category = await Category.findOne({ subCategory: subcategory });
+    if (!category) {
+      return res
+        .status(404)
+        .send("Category not found for the given subcategory.");
+    }
+    res.send(category);
+  } catch (error) {
+    console.error("Error finding category by subcategory:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   const category = await Category.findByIdAndRemove(req.params.id);
   if (!category)

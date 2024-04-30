@@ -4,87 +4,98 @@ const { Order, validate } = require("../models/order");
 const { Department } = require("../models/department");
 const { Category } = require("../models/category");
 const { Product } = require("../models/product");
-const ProductAllocation = require("../models/allocation");
+const { ProductAllocation } = require("../models/allocation");
 
 // POST endpoint to create a new order
 router.post("/", async (req, res) => {
-  console.log(req.body);
-  // Validate the request body
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  // Destructure the request body (assuming it's an array)
-  const cartItems = req.body;
-
   try {
-    // Create an array to store the saved orders
-    const savedOrders = [];
+    console.log(req.body);
+    // Validate the request body
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-    // Iterate over each cart item and save it to the database
-    for (let item of cartItems) {
-      // Fetch Department and Category objects using their IDs
-      const department = await Department.findById(item.pdepartment);
-      const category = await Category.findById(item.pcategory);
+    // Destructure the request body (assuming it's an array)
+    const cartItems = req.body;
 
-      // Fetch Product object using its ID
-      const product = await Product.findById(item.pname);
+    try {
+      // Create an array to store the saved orders
+      const savedOrders = [];
 
-      // Check if the product is allocated to the salesman
-      const allocation = await ProductAllocation.findOne({
-        salesmanId: item.salesman,
-        productId: item.pname,
-      });
+      // Iterate over each cart item and save it to the database
+      for (let item of cartItems) {
+        // Fetch Department and Category objects using their IDs
+        const department = await Department.findById(item.pdepartment);
+        const category = await Category.findById(item.pcategory);
 
-      if (!allocation) {
-        return res
-          .status(400)
-          .send("Product is not allocated to the salesman.");
+        // Fetch Product object using its ID
+        const product = await Product.findById(item.pname);
+
+        // Check if the product is allocated to the salesman
+        const allocation = await ProductAllocation.findOne({
+          salesmanId: item.salesman,
+          productId: item.pname,
+        });
+
+        if (!allocation) {
+          return res
+            .status(400)
+            .send("Product is not allocated to the salesman.");
+        }
+
+        // Check if the size property in the request body matches the allocated quantity
+        const allocatedQuantity = allocation.allocations.find(
+          (a) => a.color === item.color
+        )?.sizes[item.size];
+        if (!allocatedQuantity || allocatedQuantity < item.quantity) {
+          return res
+            .status(400)
+            .send(`Insufficient quantity of size ${item.size}.`);
+        }
+
+        // Reduce the allocated quantity of the appropriate size
+        const allocatedIndex = allocation.allocations.findIndex(
+          (a) => a.color === item.color
+        );
+        allocation.allocations[allocatedIndex].sizes[item.size] -=
+          item.quantity;
+        await allocation.save();
+
+        const {
+          salesman,
+          quantity,
+          color,
+          size,
+          price,
+          pimage,
+          longitude,
+          latitude,
+        } = item;
+
+        const order = new Order({
+          salesman,
+          pname: product.name,
+          pdepartment: department,
+          pcategory: category,
+          quantity,
+          color,
+          size,
+          price,
+          pimage,
+          longitude,
+          latitude,
+        });
+
+        // Save the order to the database
+        const savedOrder = await order.save();
+        savedOrders.push(savedOrder);
       }
 
-      // Check if the size property in the request body matches the allocated quantity
-      const allocatedQuantity = allocation.allocatedQuantities[item.size];
-      if (!allocatedQuantity || allocatedQuantity < item.quantity) {
-        return res
-          .status(400)
-          .send(`Insufficient quantity of size ${item.size}.`);
-      }
-
-      // Reduce the allocated quantity of the appropriate size
-      allocation.allocatedQuantities[item.size] -= item.quantity;
-      await allocation.save();
-
-      const {
-        salesman,
-        quantity,
-        color,
-        size,
-        price,
-        pimage,
-        longitude,
-        latitude,
-      } = item;
-
-      const order = new Order({
-        salesman,
-        pname: product.name,
-        pdepartment: department,
-        pcategory: category,
-        quantity,
-        color,
-        size,
-        price,
-        pimage,
-        longitude,
-        latitude,
-      });
-
-      // Save the order to the database
-      const savedOrder = await order.save();
-      savedOrders.push(savedOrder);
+      // Send the saved orders back as a response
+      res.send(savedOrders);
+    } catch (error) {
+      console.error("Error creating orders:", error);
+      res.status(500).send("Internal Server Error");
     }
-
-    // Send the saved orders back as a response
-    res.send(savedOrders);
   } catch (error) {
     console.error("Error creating orders:", error);
     res.status(500).send("Internal Server Error");

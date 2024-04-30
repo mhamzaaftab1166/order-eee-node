@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Product, validate } = require("../models/product");
-const { Category } = require("../models/category"); // Import Category model
-const { Department } = require("../models/department"); // Import Department model
+const { Category } = require("../models/category");
+const { Department } = require("../models/department");
 
 // CREATE
 router.post("/", async (req, res) => {
@@ -10,18 +10,9 @@ router.post("/", async (req, res) => {
     const { error } = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {
-      name,
-      category,
-      department,
-      price,
-      sizes,
-      color,
-      imageUrl,
-      description,
-    } = req.body;
+    const { name, category, department, price, colors, imageUrl, description } =
+      req.body;
 
-    // Check if the provided category and department IDs exist
     const existingCategory = await Category.findById(category);
     const existingDepartment = await Department.findById(department);
 
@@ -34,8 +25,7 @@ router.post("/", async (req, res) => {
       category,
       department,
       price,
-      sizes,
-      color,
+      colors,
       imageUrl,
       description,
     });
@@ -74,6 +64,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// READ (Get products by department)
 router.get("/department/:departmentId", async (req, res) => {
   try {
     const products = await Product.find({
@@ -85,24 +76,16 @@ router.get("/department/:departmentId", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
 // UPDATE
 router.put("/:id", async (req, res) => {
   try {
     const { error } = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {
-      name,
-      category,
-      department,
-      price,
-      sizes,
-      color,
-      imageUrl,
-      description,
-    } = req.body;
+    const { name, category, department, price, colors, imageUrl, description } =
+      req.body;
 
-    // Check if the provided category and department IDs exist
     const existingCategory = await Category.findById(category);
     const existingDepartment = await Department.findById(department);
 
@@ -116,8 +99,7 @@ router.put("/:id", async (req, res) => {
         category,
         department,
         price,
-        sizes,
-        color,
+        colors,
         imageUrl,
         description,
       },

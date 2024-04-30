@@ -9,6 +9,7 @@ const salesmanAuth = require("../routes/salesmanAuth");
 const admins = require("../routes/admins");
 const adminAuth = require("../routes/adminAuth");
 const orders = require("../routes/orders");
+const sizes = require("../routes/sizes");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -21,5 +22,6 @@ module.exports = function (app) {
   app.use("/api/admins", admins);
   app.use("/api/adminAuth", adminAuth);
   app.use("/api/orders", orders);
+  app.use("/api/sizes", sizes);
   app.use(error);
 };

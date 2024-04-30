@@ -23,29 +23,38 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  sizes: {
-    type: {
-      small: {
-        type: Number,
-        default: 0,
+  colors: [
+    {
+      name: {
+        type: String,
+        required: true,
+        minlength: 1,
+        maxlength: 15,
       },
-      medium: {
-        type: Number,
-        default: 0,
-      },
-      large: {
-        type: Number,
-        default: 0,
+      sizes: {
+        xs: {
+          type: Number,
+          default: 0,
+        },
+        s: {
+          type: Number,
+          default: 0,
+        },
+        m: {
+          type: Number,
+          default: 0,
+        },
+        l: {
+          type: Number,
+          default: 0,
+        },
+        xl: {
+          type: Number,
+          default: 0,
+        },
       },
     },
-    required: true,
-  },
-  color: {
-    type: [String],
-    required: true,
-    minlength: 1,
-    maxlength: 15,
-  },
+  ],
   imageUrl: {
     type: [String],
     required: true,
@@ -71,12 +80,20 @@ function validateProduct(product) {
     category: Joi.string().required(), // Since we are referencing Category model, we only need to validate the ObjectId
     department: Joi.string().required(), // Similarly, validate the ObjectId for Department
     price: Joi.number().min(0).required(),
-    sizes: Joi.object({
-      small: Joi.number().min(0).required(),
-      medium: Joi.number().min(0).required(),
-      large: Joi.number().min(0).required(),
-    }).required(),
-    color: Joi.array().items(Joi.string()).min(1).required(),
+    colors: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().min(1).max(15).required(),
+          sizes: Joi.object({
+            xs: Joi.number().min(0).default(0),
+            s: Joi.number().min(0).default(0),
+            m: Joi.number().min(0).default(0),
+            l: Joi.number().min(0).default(0),
+            xl: Joi.number().min(0).default(0),
+          }).required(),
+        })
+      )
+      .required(),
     imageUrl: Joi.array().items(Joi.string()).min(1).max(3).required(),
     description: Joi.string().max(400).required(),
   };

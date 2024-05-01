@@ -24,12 +24,12 @@ router.post("/", async (req, res) => {
 
     // Check if the requested quantities are available
     for (const allocation of allocations) {
-      const { color, sizes } = allocation;
-      const productColor = product.colors.find((c) => c.name === color);
+      const { name, sizes } = allocation;
+      const productColor = product.colors.find((c) => c.name === name);
       if (!productColor) {
         return res
           .status(400)
-          .send(`Color '${color}' not available for product`);
+          .send(`Color '${name}' not available for product`);
       }
 
       for (const [size, quantity] of Object.entries(sizes)) {
@@ -43,8 +43,8 @@ router.post("/", async (req, res) => {
 
     // Update product quantities
     for (const allocation of allocations) {
-      const { color, sizes } = allocation;
-      const productColor = product.colors.find((c) => c.name === color);
+      const { name, sizes } = allocation;
+      const productColor = product.colors.find((c) => c.name === name);
       for (const [size, quantity] of Object.entries(sizes)) {
         productColor.sizes[size] -= quantity;
       }
@@ -102,8 +102,8 @@ router.delete("/:id", async (req, res) => {
     // Increment product quantities based on allocations
     const product = await Product.findById(productAllocation.productId);
     for (const allocation of productAllocation.allocations) {
-      const { color, sizes } = allocation;
-      const productColor = product.colors.find((c) => c.name === color);
+      const { name, sizes } = allocation;
+      const productColor = product.colors.find((c) => c.name === name);
       for (const [size, quantity] of Object.entries(sizes)) {
         productColor.sizes[size] += quantity;
       }

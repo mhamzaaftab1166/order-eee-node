@@ -14,7 +14,7 @@ const productAllocationSchema = new mongoose.Schema({
   },
   allocations: [
     {
-      color: {
+      name: {
         type: String,
         required: true,
         minlength: 1,
@@ -58,7 +58,7 @@ function validateProductAllocation(productAllocation) {
     allocations: Joi.array()
       .items(
         Joi.object({
-          color: Joi.string().min(1).max(15).required(),
+          name: Joi.string().min(1).max(15).required(),
           sizes: Joi.object({
             xs: Joi.number().min(0).default(0),
             s: Joi.number().min(0).default(0),

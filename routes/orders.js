@@ -42,10 +42,16 @@ router.post("/", async (req, res) => {
             .send("Product is not allocated to the salesman.");
         }
 
-        // Check if the size property in the request body matches the allocated quantity
-        const allocatedQuantity = allocation.allocations.find(
-          (a) => a.color === item.color
-        )?.sizes[item.size];
+        const allocatedQuantityObj = allocation.allocations.find(
+          (a) => a.name === item.color
+        );
+        if (!allocatedQuantityObj) {
+          return res
+            .status(400)
+            .send("Allocation not found for the specified color.");
+        }
+        const allocatedQuantity = allocatedQuantityObj.sizes[item.size];
+
         if (!allocatedQuantity || allocatedQuantity < item.quantity) {
           return res
             .status(400)
@@ -54,7 +60,7 @@ router.post("/", async (req, res) => {
 
         // Reduce the allocated quantity of the appropriate size
         const allocatedIndex = allocation.allocations.findIndex(
-          (a) => a.color === item.color
+          (a) => a.name === item.color
         );
         allocation.allocations[allocatedIndex].sizes[item.size] -=
           item.quantity;

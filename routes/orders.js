@@ -50,7 +50,9 @@ router.post("/", async (req, res) => {
             .status(400)
             .send("Allocation not found for the specified color.");
         }
-        const allocatedQuantity = allocatedQuantityObj.sizes[item.size];
+        console.log(allocatedQuantityObj);
+
+        const allocatedQuantity = allocatedQuantityObj.sizes.get(item.size);
 
         if (!allocatedQuantity || allocatedQuantity < item.quantity) {
           return res
@@ -62,8 +64,11 @@ router.post("/", async (req, res) => {
         const allocatedIndex = allocation.allocations.findIndex(
           (a) => a.name === item.color
         );
-        allocation.allocations[allocatedIndex].sizes[item.size] -=
-          item.quantity;
+        allocation.allocations[allocatedIndex].sizes.set(
+          item.size,
+          allocatedQuantity - item.quantity
+        );
+
         await allocation.save();
 
         const {

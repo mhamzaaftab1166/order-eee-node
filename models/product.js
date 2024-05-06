@@ -32,23 +32,8 @@ const productSchema = new mongoose.Schema({
         maxlength: 15,
       },
       sizes: {
-        xs: {
-          type: Number,
-          default: 0,
-        },
-        s: {
-          type: Number,
-          default: 0,
-        },
-        m: {
-          type: Number,
-          default: 0,
-        },
-        l: {
-          type: Number,
-          default: 0,
-        },
-        xl: {
+        type: Map,
+        of: {
           type: Number,
           default: 0,
         },
@@ -84,13 +69,9 @@ function validateProduct(product) {
       .items(
         Joi.object({
           name: Joi.string().min(1).max(15).required(),
-          sizes: Joi.object({
-            xs: Joi.number().min(0).default(0),
-            s: Joi.number().min(0).default(0),
-            m: Joi.number().min(0).default(0),
-            l: Joi.number().min(0).default(0),
-            xl: Joi.number().min(0).default(0),
-          }).required(),
+          sizes: Joi.object()
+            .pattern(Joi.string(), Joi.number().min(0).default(0))
+            .required(),
         })
       )
       .required(),
